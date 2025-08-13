@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
+    "start:dev": "nodemon --exec ts-node src/server.ts",
     "dev": "tsx watch src/server.ts",
     "type-check": "tsc --noEmit"
   },
