@@ -1,25 +1,26 @@
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
+import connectDB from "./config/db.js";
+
+import authRoutes from "./routes/auth.js";
 
 dotenv.config();
 
 const app: Express = express();
 const PORT: number = parseInt(process.env.PORT as string, 10) || 5000;
-const MONGO_URI: string =
-  "mongodb+srv://tradelink_admin:Sail53Group@tradelink.i7nexqe.mongodb.net/?retryWrites=true&w=majority&appName=Tradelink";
 
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
+app.use("/api/auth", authRoutes);
+
 app.get("/", (req: Request, res: Response) => {
   res.send("Welcome to TradeLink Backend server");
 });
 
-mongoose
-  .connect(MONGO_URI)
+connectDB()
   .then(() => {
     console.log("Connected to MongoDB successfully");
     app.listen(PORT, () => {
