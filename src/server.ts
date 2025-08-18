@@ -3,7 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 
-import authRoutes from "./routes/auth.js";
+import auth from "./routes/auth.js";
+import seller from "./routes/sellers.js";
 
 dotenv.config();
 
@@ -14,7 +15,8 @@ app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", auth);
+app.use("/api/sellers", seller);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Welcome to TradeLink Backend server");

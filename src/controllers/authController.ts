@@ -1,11 +1,22 @@
 import { Request, Response } from "express";
 import User from "../models/User.js";
+import Seller from "../models/Seller.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { name, email, password, phone, address } = req.body;
+    const {
+      email,
+      password,
+      name,
+      phone,
+      address,
+      role,
+      storeName,
+      description,
+      location,
+    } = req.body;
 
     if (!name || !email || !password) {
       return res
@@ -24,10 +35,26 @@ export const register = async (req: Request, res: Response) => {
       password,
       phone,
       address,
-      role: "user",
+      role: role === "seller" ? "seller" : "user",
     });
 
     await user.save();
+
+    let seller = null;
+    if (role === "seller" && storeName && location) {
+      seller = new Seller({
+        userId: user._id,
+        storeName,
+        description,
+        location: {
+          address: location.address,
+          coordinates: location.coordinates,
+        },
+        phone,
+        email,
+      });
+      await seller.save();
+    }
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -38,9 +65,12 @@ export const register = async (req: Request, res: Response) => {
     );
 
     res.status(201).json({
-      message: "User registered successfully",
+      message: `${
+        role === seller ? seller?.storeName : user.name
+      } registered suceessfully now`,
       token,
       userId: user._id,
+      sellerId: seller ? seller._id : undefined,
     });
   } catch (error) {
     console.error("Error registering user:", error);

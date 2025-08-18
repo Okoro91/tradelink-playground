@@ -1,65 +1,66 @@
 import { Request, Response } from "express";
-import User from "../models/User.js";
 import Seller from "../models/Seller.js";
 
-export const registerSeller = async (req: Request, res: Response) => {
-  const {
-    storeName,
-    description,
-    location,
-    phone,
-    email,
-    name,
-    password,
-    address,
-    coordinates,
-  } = req.body;
-
+export const getSellerProfile = async (req: Request, res: Response) => {
   try {
-    if (!userId || !storeName || !location || !email) {
-      return res.status(400).json({ message: "All fields are required" });
+    const sellerId = req.params.id;
+    const seller = await Seller.findOne({ sellerId }).populate(
+      "userId",
+      "name email"
+    );
+
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
     }
 
-    const existingSeller = await User.findOne({ email });
-    if (existingSeller) {
-      return res.status(400).json({ message: "Seller already exists" });
-    }
-
-    const user = await User.create({
-      name,
-      email,
-      password,
-      phone,
-      address,
-      role: "seller",
+    res.status(200).json({
+      message: "Seller profile retrieved successfully",
+      seller,
     });
-
-    const seller = await Seller.create({
-      userId: user._id,
-      storeName,
-      description,
-      location: {
-        address,
-        coordinates,
-      },
-      phone,
-      email,
-    });
-
-    if (user && seller) {
-      res.status(201).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        sellerId: seller._id,
-        message: "Seller account registered successfully!",
-      });
-    } else {
-      res.status(400).json({ message: "Invalid seller data" });
-    }
   } catch (error) {
-    console.error("Error in seller registration:", error);
-    res.status(500).json({ message: "Server error", error });
+    console.error("Error retrieving seller profile:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const updateSellerProfile = async (req: Request, res: Response) => {
+  try {
+    // const sellerId = req.params.id;
+    const { storeName, description, location, phone } = req.body;
+    const seller = await Seller.findOneAndUpdate(
+      { userId: req.user?.id },
+      { storeName, description, location, phone, updatedAt: new Date() },
+      { new: true, runValidators: true }
+    ).populate("userId", "name email");
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+
+    res.status(200).json({
+      message: "Seller profile updated successfully",
+      seller,
+    });
+  } catch (error) {
+    console.error("Error updating seller profile:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const deleteSellerProfile = async (req: Request, res: Response) => {
+  try {
+    const sellerId = req.params.id;
+    const seller = await Seller.findByIdAndDelete(sellerId);
+
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+
+    res.status(200).json({
+      message: "Seller profile deleted successfully",
+      sellerId,
+    });
+  } catch (error) {
+    console.error("Error deleting seller profile:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
