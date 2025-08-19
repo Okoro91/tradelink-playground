@@ -8,7 +8,6 @@ import { protect } from "../middleware/authMiddleware.js";
 
 const router: Router = Router();
 
-router.get("/profile", getSellerProfile);
 router.get("/profile", protect, getSellerProfile);
 router.put("/profile", protect, updateSellerProfile);
 router.delete("/profile", protect, deleteSellerProfile);

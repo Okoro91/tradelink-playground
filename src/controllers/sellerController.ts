@@ -1,10 +1,16 @@
 import { Request, Response } from "express";
 import Seller from "../models/Seller.js";
 
-export const getSellerProfile = async (req: Request, res: Response) => {
+interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    role: string;
+  };
+}
+
+export const getSellerProfile = async (req: AuthRequest, res: Response) => {
   try {
-    const sellerId = req.params.id;
-    const seller = await Seller.findOne({ sellerId }).populate(
+    const seller = await Seller.findOne({ userId: req.user?.id }).populate(
       "userId",
       "name email"
     );
@@ -23,15 +29,16 @@ export const getSellerProfile = async (req: Request, res: Response) => {
   }
 };
 
-export const updateSellerProfile = async (req: Request, res: Response) => {
+export const updateSellerProfile = async (req: AuthRequest, res: Response) => {
   try {
-    // const sellerId = req.params.id;
     const { storeName, description, location, phone } = req.body;
+
     const seller = await Seller.findOneAndUpdate(
       { userId: req.user?.id },
       { storeName, description, location, phone, updatedAt: new Date() },
       { new: true, runValidators: true }
     ).populate("userId", "name email");
+
     if (!seller) {
       return res.status(404).json({ message: "Seller not found" });
     }
@@ -46,10 +53,9 @@ export const updateSellerProfile = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteSellerProfile = async (req: Request, res: Response) => {
+export const deleteSellerProfile = async (req: AuthRequest, res: Response) => {
   try {
-    const sellerId = req.params.id;
-    const seller = await Seller.findByIdAndDelete(sellerId);
+    const seller = await Seller.findOneAndDelete({ userId: req.user?.id });
 
     if (!seller) {
       return res.status(404).json({ message: "Seller not found" });
@@ -57,7 +63,6 @@ export const deleteSellerProfile = async (req: Request, res: Response) => {
 
     res.status(200).json({
       message: "Seller profile deleted successfully",
-      sellerId,
     });
   } catch (error) {
     console.error("Error deleting seller profile:", error);

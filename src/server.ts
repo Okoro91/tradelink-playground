@@ -4,7 +4,8 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 
 import auth from "./routes/auth.js";
-import seller from "./routes/sellers.js";
+import user from "./routes/userRoutes.js";
+import seller from "./routes/sellerRoutes.js";
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
 app.use("/api/auth", auth);
+app.use("/api/users", user);
 app.use("/api/sellers", seller);
 
 app.get("/", (req: Request, res: Response) => {
